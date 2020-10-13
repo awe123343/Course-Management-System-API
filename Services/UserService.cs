@@ -12,6 +12,8 @@ namespace CourseSysAPI.Services
     {
         User Authenticate(string username, string password);
         IEnumerable<User> GetAll();
+        IEnumerable<User> GetByRole(string role);
+        IEnumerable<User> GetChildren(int id);
         User GetById(int id);
         User Create(User user, string password);
         void Update(User user, string password = null);
@@ -51,6 +53,17 @@ namespace CourseSysAPI.Services
         public IEnumerable<User> GetAll()
         {
             return _context.Users;
+        }
+
+        public IEnumerable<User> GetByRole(string role)
+        {
+            return _context.Users.Where(u => u.Role == role);
+        }
+
+        public IEnumerable<User> GetChildren(int id)
+        {
+            HashSet<int> childrenIds = new HashSet<int>(_context.Families.Where(family => family.ParentId == id).Select(family => family.StudentId));
+            return _context.Users.Where(u => childrenIds.Contains(u.Id));
         }
 
         public User GetById(int id)

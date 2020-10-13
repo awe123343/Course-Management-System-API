@@ -75,6 +75,26 @@ namespace CourseSysAPI.Controllers
             return Ok(users);
         }
 
+        [Authorize(Roles = Role.Admin)]
+        [HttpGet("role/{role}")]
+        public IActionResult GetByRole(string role)
+        {
+            var users = _mapper.Map<IList<UserModel>>(_userService.GetByRole(role));
+            return Ok(users);
+        }
+
+        [Authorize(Roles = Role.Parent)]
+        [HttpGet("children/{id}")]
+        public IActionResult GetChildren(int id)
+        {
+            // only allow admins to access other user records
+            var currentUserId = int.Parse(User.Identity.Name);
+            if (id != currentUserId)
+                return Forbid();
+            var users = _mapper.Map<IList<UserModel>>(_userService.GetChildren(id));
+            return Ok(users);
+        }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
