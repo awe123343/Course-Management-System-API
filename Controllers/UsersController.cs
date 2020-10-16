@@ -75,7 +75,7 @@ namespace CourseSysAPI.Controllers
             return Ok(users);
         }
 
-        [Authorize(Roles = Role.Admin)]
+        [Authorize(Roles = Role.Admin + ", " + Role.Evaluator + ", " + Role.Parent)]
         [HttpGet("role/{role}")]
         public IActionResult GetByRole(string role)
         {
@@ -87,12 +87,13 @@ namespace CourseSysAPI.Controllers
         [HttpGet("children/{id}")]
         public IActionResult GetChildren(int id)
         {
-            // only allow admins to access other user records
+            // do not allow access other user records
             var currentUserId = int.Parse(User.Identity.Name);
             if (id != currentUserId)
                 return Forbid();
-            var users = _mapper.Map<IList<UserModel>>(_userService.GetChildren(id));
-            return Ok(users);
+
+            var res = _userService.GetChildrenCourse(id);
+            return Ok(res);
         }
 
         [HttpGet("{id}")]

@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using CourseSysAPI.Data;
 using CourseSysAPI.Entities;
 using CourseSysAPI.Helpers;
+using CourseSysAPI.Models.Users;
+using CourseSysAPI.Models.Courses;
 
 namespace CourseSysAPI.Services
 {
@@ -13,7 +15,7 @@ namespace CourseSysAPI.Services
         User Authenticate(string username, string password);
         IEnumerable<User> GetAll();
         IEnumerable<User> GetByRole(string role);
-        IEnumerable<User> GetChildren(int id);
+        IEnumerable<UserCourseModel> GetChildrenCourse(int id);
         User GetById(int id);
         User Create(User user, string password);
         void Update(User user, string password = null);
@@ -60,10 +62,27 @@ namespace CourseSysAPI.Services
             return _context.Users.Where(u => u.Role == role);
         }
 
-        public IEnumerable<User> GetChildren(int id)
+        public IEnumerable<UserCourseModel> GetChildrenCourse(int id)
         {
             HashSet<int> childrenIds = new HashSet<int>(_context.Families.Where(family => family.ParentId == id).Select(family => family.StudentId));
-            return _context.Users.Where(u => childrenIds.Contains(u.Id));
+            List<User> children = _context.Users.Where(u => childrenIds.Contains(u.Id)).ToList();
+            List<UserCourseModel> res = new List<UserCourseModel>();
+            foreach (User child in children)
+            {
+                HashSet<int> coursesChildTake = new HashSet<int>(_context.Enrollments.Where(enroll => enroll.StudentId == child.Id).Select(enroll => enroll.CourseId));
+                var currChildCourses = _context.Courses.Where(c => coursesChildTake.Contains(c.Id));
+
+                UserCourseModel model = new UserCourseModel
+                {
+                    Id = child.Id,
+                    FirstName = child.FirstName,
+                    LastName = child.LastName,
+                    Username = child.Username,
+                    Courses = currChildCourses.ToList()
+                };
+                res.Add(model);
+            }
+            return res;
         }
 
         public User GetById(int id)

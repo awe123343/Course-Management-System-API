@@ -1,6 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace CourseSysAPI.Models.Courses
 {
-    public class CourseDisplayModel
+    public class StudentEnrollmentModel
     {
         public int Id { get; set; }
         public string CourseCode { get; set; }
@@ -9,5 +11,6 @@ namespace CourseSysAPI.Models.Courses
         public string EvaluatorName { get; set; }
         public string Description { get; set; }
         public int CurrentStuNo { get; set; }
+        public int EnrollmentId { get; set; }
     }
 }

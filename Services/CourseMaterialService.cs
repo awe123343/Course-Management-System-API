@@ -14,6 +14,11 @@ namespace CourseSysAPI.Services
     {
         IEnumerable<CourseMaterial> GetAll();
         IEnumerable<CourseMaterial> GetByCourse(int id);
+        IEnumerable<CourseMaterial> GetByEvaluator(int id);
+        IEnumerable<CourseMaterial> GetByStudent(int id);
+        IEnumerable<Assignment> GetAssignmentByEvaluaotr(int evaluatorId);
+        IEnumerable<Assignment> GetAssignmentByStudent(int stuId);
+        IEnumerable<Assignment> GetAssignmentByStudentCourse(int stuId, int courseId);
         CourseMaterial GetById(int id);
         CourseMaterial Create(CourseMaterial courseMaterial);
         void Update(CourseMaterial newCourseMaterial);
@@ -44,6 +49,35 @@ namespace CourseSysAPI.Services
         public IEnumerable<CourseMaterial> GetByCourse(int id)
         {
             return _context.CourseMaterials.Where(material => material.CourseId == id);
+        }
+
+        public IEnumerable<CourseMaterial> GetByEvaluator(int id)
+        {
+            HashSet<int> evaluatorCourseIds = new HashSet<int>(_context.Courses.Where(c => c.EvaluatorId == id).Select(c => c.Id));
+            return _context.CourseMaterials.Where(material => evaluatorCourseIds.Contains(material.CourseId));
+        }
+
+        public IEnumerable<CourseMaterial> GetByStudent(int id)
+        {
+            HashSet<int> courseStudentTake = new HashSet<int>(_context.Enrollments.Where(enroll => enroll.StudentId == id).Select(enroll => enroll.CourseId));
+            return _context.CourseMaterials.Where(material => courseStudentTake.Contains(material.CourseId));
+        }
+
+        public IEnumerable<Assignment> GetAssignmentByEvaluaotr(int evaluatorId)
+        {
+            HashSet<int> assignmentIdsForEvaluator = new HashSet<int>(GetByEvaluator(evaluatorId).Where(assignment => assignment.IsAssignment).Select(assignment => assignment.Id));
+            return _context.Assignments.Where(assignment => assignmentIdsForEvaluator.Contains(assignment.CourseMaterialId));
+        }
+
+        public IEnumerable<Assignment> GetAssignmentByStudent(int stuId)
+        {
+            return _context.Assignments.Where(assignment => (assignment.StudentId == stuId));
+        }
+
+        public IEnumerable<Assignment> GetAssignmentByStudentCourse(int stuId, int courseId)
+        {
+            HashSet<int> currCourseAssignment = new HashSet<int>(_context.CourseMaterials.Where(cm => (cm.CourseId == courseId) && (cm.IsAssignment)).Select(cm => cm.Id));
+            return _context.Assignments.Where(assignment => (assignment.StudentId == stuId) && (currCourseAssignment.Contains(assignment.CourseMaterialId)));
         }
 
         public CourseMaterial GetById(int id)
@@ -95,6 +129,9 @@ namespace CourseSysAPI.Services
 
         public Assignment SubmitAssignment(Assignment assignment)
         {
+            if (_context.Assignments.Any(x => (x.CourseMaterialId == assignment.CourseMaterialId && x.StudentId == assignment.StudentId)))
+                throw new AppException("You already have a submission for assignment.");
+
             _context.Assignments.Add(assignment);
             _context.SaveChanges();
 

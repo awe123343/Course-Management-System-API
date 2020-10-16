@@ -124,7 +124,6 @@ namespace CourseSysAPI.Controllers
             return Ok();
         }
 
-
         [Authorize(Roles = Role.Admin + ", " + Role.Student)]
         [HttpGet("enrolllist/{id}")]
         public IActionResult GetCourseByStudent(int id)

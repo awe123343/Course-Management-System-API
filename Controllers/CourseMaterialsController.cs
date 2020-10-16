@@ -41,6 +41,42 @@ namespace CourseSysAPI.Controllers
             return Ok(materials);
         }
 
+        [Authorize(Roles = Role.Evaluator)]
+        [HttpGet("evaluator/{id}")]
+        public IActionResult GetByEvaluator(int id)
+        {
+            var materials = _courseMaterialService.GetByEvaluator(id);
+            return Ok(materials);
+        }
+
+        [HttpGet("student/{id}")]
+        public IActionResult GetByStudent(int id)
+        {
+            var materials = _courseMaterialService.GetByStudent(id);
+            return Ok(materials);
+        }
+
+        [HttpGet("evaassignment/{id}")]
+        public IActionResult GetAssignmentByEvaluaotr(int id)
+        {
+            var assignments = _courseMaterialService.GetAssignmentByEvaluaotr(id);
+            return Ok(assignments);
+        }
+
+        [HttpGet("stuassignment/{id}")]
+        public IActionResult GetAssignmentByStudent(int id)
+        {
+            var assignments = _courseMaterialService.GetAssignmentByStudent(id);
+            return Ok(assignments);
+        }
+
+        [HttpPost("assignmentstucourse")]
+        public IActionResult GetByStudentCourse([FromBody] StuCourseComboModel model)
+        {
+            var materials = _courseMaterialService.GetAssignmentByStudentCourse(model.StuId, model.CourseId);
+            return Ok(materials);
+        }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
@@ -132,7 +168,7 @@ namespace CourseSysAPI.Controllers
         }
 
         [Authorize(Roles = Role.Evaluator)]
-        [HttpPatch("grading")]
+        [HttpPost("grading")]
         public IActionResult GradeAssignment([FromBody] GradeAssignmentModel model)
         {
             try

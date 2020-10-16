@@ -14,7 +14,7 @@ namespace CourseSysAPI.Services
     {
         IEnumerable<Course> GetAll();
         IEnumerable<CourseDisplayModel> GetAllForDisplay();
-        IEnumerable<CourseDisplayModel> GetCourseForStudent(int id);
+        IEnumerable<StudentEnrollmentModel> GetCourseForStudent(int id);
         IEnumerable<CourseEnrollmentModel> GetCourseForEvaluator(int id);
         IEnumerable<CourseEnrollmentModel> GetAllWithEnrollments();
         Course GetById(int id);
@@ -63,14 +63,14 @@ namespace CourseSysAPI.Services
             return res;
         }
 
-        public IEnumerable<CourseDisplayModel> GetCourseForStudent(int id)
+        public IEnumerable<StudentEnrollmentModel> GetCourseForStudent(int id)
         {
             var courses = _context.Courses;
             var users = _context.Users;
             HashSet<int> courseStudentTake = new HashSet<int>(_context.Enrollments.Where(enroll => enroll.StudentId == id).Select(enroll => enroll.CourseId));
             var enrollments = _context.Enrollments.Where(enroll => courseStudentTake.Contains(enroll.CourseId));
 
-            IEnumerable<CourseDisplayModel> res = courses.Join(users, c => c.EvaluatorId, u => u.Id, (c, u) => new CourseDisplayModel
+            IEnumerable<StudentEnrollmentModel> res = courses.Join(users, c => c.EvaluatorId, u => u.Id, (c, u) => new StudentEnrollmentModel
             {
                 Id = c.Id,
                 CourseCode = c.CourseCode,
@@ -78,8 +78,9 @@ namespace CourseSysAPI.Services
                 Capacity = c.Capacity,
                 EvaluatorName = $"{u.FirstName} {u.LastName}",
                 Description = c.Description,
-                CurrentStuNo = enrollments.Where(e => e.CourseId == c.Id).Count()
-            });
+                CurrentStuNo = enrollments.Where(e => e.CourseId == c.Id).Count(),
+                EnrollmentId = enrollments.Where(e => e.CourseId == c.Id && e.StudentId == id).First().Id
+            }).Where(model => courseStudentTake.Contains(model.Id));
 
             return res;
         }
